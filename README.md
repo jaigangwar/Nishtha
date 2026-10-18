@@ -262,29 +262,30 @@ Then open **http://localhost:4173**.
 
 ---
 
-## Deploy on Render
+## Deploy on Vercel
 
-Nishtha is configured as a Render Static Site. The checked-in [`render.yaml`](render.yaml) provides the build command, Node version, published directory, and SPA fallback needed for hash routes such as `/#investigate` and `/#report`.
+Nishtha is configured as a Vercel Vite deployment. The checked-in [`vercel.json`](vercel.json) defines the install command, production build, `dist` output, and SPA rewrite needed for hash routes such as `/#investigate` and `/#report`.
 
-### Blueprint deploy — recommended
+### Git integration — recommended
 
 1. Push this repository to GitHub.
-2. In Render, choose **New → Blueprint**.
-3. Select the GitHub repository.
-4. Render will detect `render.yaml` and create the `nishtha` static site.
-5. Click **Apply**. No environment variables or API keys are required.
+2. In Vercel, choose **Add New → Project**.
+3. Import the Nishtha GitHub repository.
+4. Vercel will detect Vite and read `vercel.json`.
+5. Click **Deploy**. No environment variables or API keys are required.
 
-### Manual static-site settings
+### Manual project settings
 
-If you do not use the Blueprint flow, create a Render **Static Site** with:
+If you configure the project manually, use:
 
 ```text
-Build command:      npm ci && npm run build
-Publish directory:  dist
+Install command:    npm ci
+Build command:      npm run build
+Output directory:   dist
 Node version:       22.14.0
 ```
 
-Add this rewrite so refreshing any client-side view continues to load the app:
+The Vercel config includes this rewrite so refreshing any client-side view continues to load the app:
 
 ```text
 Source:       /*
