@@ -390,7 +390,7 @@ function App() {
     return <LandingPage onNavigate={navigate} reducedMotion={reducedMotion} />
   }, [view, report, cases, caseSaved, reducedMotion])
 
-  return <><AppHeader currentView={view} theme={theme} onToggleTheme={() => setTheme((value) => value === 'dark' ? 'light' : 'dark')} onNavigate={navigate} />{selectedView}{saveNotice && <div className="save-toast" role="status">{saveNotice}</div>}<NishiGuide view={view} onNavigate={navigate} /></>
+  return <div className={`app-shell app-view-${view} theme-${theme}`}><AppHeader currentView={view} theme={theme} onToggleTheme={() => setTheme((value) => value === 'dark' ? 'light' : 'dark')} onNavigate={navigate} />{selectedView}{saveNotice && <div className="save-toast" role="status">{saveNotice}</div>}<NishiGuide view={view} onNavigate={navigate} /></div>
 }
 
 export default App
