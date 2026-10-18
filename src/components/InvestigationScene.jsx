@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef, useState } from 'react'
+import React, { Component, Suspense, useEffect, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { ContactShadows, Float, Html, RoundedBox } from '@react-three/drei'
 import * as THREE from 'three'
@@ -10,6 +10,23 @@ function canUseWebGL() {
     return Boolean(canvas.getContext('webgl2') || canvas.getContext('webgl'))
   } catch {
     return false
+  }
+}
+
+class SceneErrorBoundary extends Component {
+  state = { hasError: false }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error) {
+    // Keep the failure local to the decorative scene. The investigation flow must remain usable.
+    if (import.meta.env?.DEV) console.warn('Nishtha 3D scene fallback:', error)
+  }
+
+  render() {
+    return this.state.hasError ? <SceneFallback /> : this.props.children
   }
 }
 
@@ -277,19 +294,21 @@ export function InvestigationScene({ reducedMotion = false }) {
   return (
     <div className="scene-frame" ref={frameRef} role="img" aria-labelledby="scene-description">
       <span id="scene-description" className="sr-only">Evidence desk illustration showing a document, magnifying glass, source marker, claim marker, and Nishi companion.</span>
-      <Canvas
-        shadows
-        dpr={reducedMotion ? 1 : [1, 1.5]}
-        frameloop={reducedMotion || !isVisible ? 'demand' : 'always'}
-        camera={{ position: [0, 0.2, 5.9], fov: 38 }}
-        gl={{ antialias: true, powerPreference: 'high-performance' }}
-        onCreated={() => setWebgl(true)}
-        fallback={<SceneFallback />}
-      >
-        <Suspense fallback={null}>
-          <SceneWorld reducedMotion={reducedMotion} />
-        </Suspense>
-      </Canvas>
+      <SceneErrorBoundary>
+        <Canvas
+          shadows
+          dpr={reducedMotion ? 1 : [1, 1.25]}
+          frameloop={reducedMotion || !isVisible ? 'demand' : 'always'}
+          camera={{ position: [0, 0.2, 5.9], fov: 38 }}
+          gl={{ antialias: true, powerPreference: 'high-performance' }}
+          onCreated={() => setWebgl(true)}
+          fallback={<SceneFallback />}
+        >
+          <Suspense fallback={null}>
+            <SceneWorld reducedMotion={reducedMotion} />
+          </Suspense>
+        </Canvas>
+      </SceneErrorBoundary>
       <div className="scene-caption"><span className="live-dot" /> Live evidence desk <span>•</span> loop 08.4s</div>
       <div className="scene-interaction-hint"><span>click a marker</span><i>↗</i></div>
     </div>
