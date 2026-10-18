@@ -41,7 +41,18 @@ function saveStoredCases(cases) {
   }
 }
 
-function AppHeader({ currentView, onNavigate }) {
+function getInitialTheme() {
+  if (typeof window === 'undefined') return 'light'
+  try {
+    const saved = localStorage.getItem('nishtha-theme')
+    if (saved === 'light' || saved === 'dark') return saved
+  } catch {
+    // Theme preference is optional.
+  }
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+function AppHeader({ currentView, theme, onToggleTheme, onNavigate }) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -71,6 +82,7 @@ function AppHeader({ currentView, onNavigate }) {
           <a href="#safety" onClick={(event) => go(event, 'safety')}>Safety</a>
           <a href="#about" onClick={(event) => go(event, 'about')}>About</a>
           <a href="#cases" onClick={(event) => go(event, 'cases')}>Cases</a>
+          <button className="theme-toggle" onClick={onToggleTheme} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}><span className="theme-icon">{theme === 'dark' ? '☼' : '◐'}</span><span>{theme === 'dark' ? 'Light' : 'Dark'}</span></button>
           <button className="header-cta" onClick={() => { setMenuOpen(false); onNavigate({ view: 'investigate', section: 'investigate' }) }}>Start investigation <span>↗</span></button>
         </nav>
       </div>
@@ -245,16 +257,27 @@ function InvestigationView({ report, onReport, onOpenReport, onSaveCase, caseSav
 function ReportView({ report, onSaveCase, onUpdateReport, caseSaved, onNavigate }) {
   const current = report || DEMO_REPORT
   const [expanded, setExpanded] = useState(0)
+  const [copied, setCopied] = useState(false)
   const questions = current.questions.map((question, index) => typeof question === 'string' ? { id: `question-${index}`, text: question, priority: 'open' } : question)
   const breakdown = current.breakdown || DEMO_REPORT.breakdown
   const questionStatus = current.questionStatus || {}
   const completedCount = questions.filter((question) => questionStatus[question.id]).length
   const toggleQuestion = (id) => onUpdateReport({ ...current, questionStatus: { ...questionStatus, [id]: !questionStatus[id] } })
+  const copySummary = async () => {
+    const summary = `${current.opportunity}\n\n${current.summary}\n\nOpen questions:\n${questions.map((question, index) => `${index + 1}. ${question.text}`).join('\n')}\n\nNishtha: local heuristic scan; no external source checked.`
+    try {
+      await navigator.clipboard.writeText(summary)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1800)
+    } catch {
+      setCopied(false)
+    }
+  }
   return (
     <main className="report-page section-shell" id="report">
       <div className="workspace-topbar"><button className="back-link" onClick={() => onNavigate({ view: 'investigate', section: 'investigate' })}>← Back to workspace</button><span className="mono-label">REPORT / {current.opportunity.toUpperCase()}</span></div>
       <div className="report-heading"><div><p className="eyebrow">Evidence report <span className="report-local-badge">local heuristic</span></p><h1>{current.opportunity}<br /><em>needs more evidence.</em></h1></div><div className="report-score"><span>Evidence coverage</span><strong>{current.score}</strong><small>/100</small><i>not a legitimacy verdict</i></div></div>
-      <div className="report-summary"><span className="summary-label">READ THIS FIRST</span><p>{current.summary}</p><button className="button button-outline" onClick={onSaveCase}>{caseSaved ? 'Saved to cases' : 'Save case'}</button></div>
+      <div className="report-summary"><span className="summary-label">READ THIS FIRST</span><p>{current.summary}</p><div className="summary-actions"><button className="button button-outline" onClick={copySummary}>{copied ? 'Copied' : 'Copy summary'}</button><button className="button button-outline" onClick={onSaveCase}>{caseSaved ? 'Saved to cases' : 'Save case'}</button></div></div>
       <section className="signal-breakdown" aria-labelledby="signal-breakdown-heading"><div className="breakdown-heading"><div><p className="eyebrow">How this signal is formed</p><h2 id="signal-breakdown-heading">A number with<br /><em>visible edges.</em></h2></div><p>Coverage measures how much useful, specific material is present in the supplied text. It is not a safety score, a fraud detector, or an external verification result.</p></div><div className="breakdown-grid">{breakdown.map((item) => <div className="breakdown-item" key={item.id}><div className="breakdown-item-top"><span>{item.label}</span><strong>{item.value}</strong></div><div className="breakdown-bar"><i style={{ width: `${item.value}%` }} /></div><p>{item.note}</p></div>)}</div></section>
       <section className="report-section" aria-labelledby="evidence-ledger-heading"><div className="report-section-heading"><div><p className="eyebrow">01 / Evidence ledger</p><h2 id="evidence-ledger-heading">What the trail<br /><em>can support.</em></h2></div><p>Open an entry to see the original excerpt, its evidence state, and the boundary between what the material supports and what it cannot prove.</p></div><div className="evidence-list">{current.evidence.map((item, index) => <article className={`evidence-entry ${expanded === index ? 'is-expanded' : ''}`} key={item.id || item.title}><button onClick={() => setExpanded(expanded === index ? -1 : index)} aria-expanded={expanded === index}><span className="entry-id">E-{String(index + 1).padStart(2, '0')}</span><span className={`entry-type entry-${item.tone}`}>{item.type}</span><strong>{item.title}</strong><span className="entry-toggle">{expanded === index ? '−' : '+'}</span></button>{expanded === index && <div className="entry-detail"><div className="quote-block"><span className="quote-mark">“</span><p>{item.quote}</p><span className="mono-label">{item.sourceLocation || item.source}</span></div><div className="entry-boundaries"><div><span>CAN SUPPORT</span><strong>{item.supports}</strong></div><div><span>CANNOT SUPPORT</span><strong>{item.limits}</strong></div></div><p className="entry-explanation">{item.detail}</p><button className="inline-link" onClick={() => onNavigate({ view: 'sources', section: 'sources' })}>Open provenance view <span>↗</span></button></div>}</article>)}</div></section>
       <section className="questions-section" id="report-questions"><div><p className="eyebrow">02 / Next-action plan</p><h2>Questions to ask<br /><em>before acting.</em></h2><div className="question-progress"><span>{completedCount} of {questions.length} addressed</span><div><i style={{ width: `${questions.length ? completedCount / questions.length * 100 : 0}%` }} /></div></div><p className="question-note">Checking a question means you addressed it—not that the opportunity is verified.</p></div><ol>{questions.map((question, index) => <li className={questionStatus[question.id] ? 'is-complete' : ''} key={question.id}><label><input type="checkbox" checked={Boolean(questionStatus[question.id])} onChange={() => toggleQuestion(question.id)} /><span className="checkmark">✓</span></label><span>{String(index + 1).padStart(2, '0')}</span><p>{question.text}</p><em>{question.priority === 'next' ? 'next best check' : 'open question'}</em></li>)}</ol></section>
@@ -284,6 +307,7 @@ function getLocationState() {
 function App() {
   const initialLocation = getLocationState()
   const [view, setView] = useState(initialLocation.view)
+  const [theme, setTheme] = useState(getInitialTheme)
   const [report, setReport] = useState(null)
   const [cases, setCases] = useState(getStoredCases)
   const [caseSaved, setCaseSaved] = useState(false)
@@ -303,6 +327,15 @@ function App() {
     const titles = { home: 'Nishtha — Evidence before trust', investigate: 'Investigate — Nishtha', report: 'Evidence report — Nishtha', cases: 'Saved cases — Nishtha', sources: 'Source detail — Nishtha' }
     document.title = titles[view] || titles.home
   }, [view])
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    try {
+      localStorage.setItem('nishtha-theme', theme)
+    } catch {
+      // Theme preference is optional.
+    }
+  }, [theme])
 
   useEffect(() => {
     if (!pendingSection) return undefined
@@ -357,7 +390,7 @@ function App() {
     return <LandingPage onNavigate={navigate} reducedMotion={reducedMotion} />
   }, [view, report, cases, caseSaved, reducedMotion])
 
-  return <><AppHeader currentView={view} onNavigate={navigate} />{selectedView}{saveNotice && <div className="save-toast" role="status">{saveNotice}</div>}<NishiGuide view={view} onNavigate={navigate} /></>
+  return <><AppHeader currentView={view} theme={theme} onToggleTheme={() => setTheme((value) => value === 'dark' ? 'light' : 'dark')} onNavigate={navigate} />{selectedView}{saveNotice && <div className="save-toast" role="status">{saveNotice}</div>}<NishiGuide view={view} onNavigate={navigate} /></>
 }
 
 export default App

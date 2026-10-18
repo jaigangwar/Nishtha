@@ -26,7 +26,7 @@ class SceneErrorBoundary extends Component {
   }
 
   render() {
-    return this.state.hasError ? <SceneFallback /> : this.props.children
+    return this.state.hasError ? <SceneFallback reason="runtime" /> : this.props.children
   }
 }
 
@@ -40,6 +40,7 @@ function loopProgress(elapsed) {
 function PaperDocument({ timeRef, reducedMotion }) {
   const group = useRef(null)
   const sweep = useRef(null)
+  const initialProgress = loopProgress(0)
 
   useFrame((state, delta) => {
     if (!group.current || reducedMotion) return
@@ -60,9 +61,9 @@ function PaperDocument({ timeRef, reducedMotion }) {
   return (
     <group
       ref={group}
-      position={[0.15, -0.04 + progress * 0.15, 0.28]}
+      position={[0.15, -0.04 + initialProgress * 0.15, 0.28]}
       rotation={[0.04, -0.08, -0.045]}
-      scale={0.82 + progress * 0.18}
+      scale={0.82 + initialProgress * 0.18}
     >
       <RoundedBox args={[2.55, 1.62, 0.055]} radius={0.055} smoothness={3} castShadow receiveShadow>
         <meshStandardMaterial color="#f4f1e9" roughness={0.78} />
@@ -263,7 +264,7 @@ function SceneWorld({ reducedMotion }) {
   )
 }
 
-function SceneFallback() {
+function SceneFallback({ reason = 'webgl' }) {
   return (
     <div className="scene-fallback" aria-label="A layered illustration of an evidence desk">
       <div className="fallback-orbit fallback-orbit-one" />
@@ -272,7 +273,7 @@ function SceneFallback() {
       <div className="fallback-pin fallback-pin-one">SOURCE</div>
       <div className="fallback-pin fallback-pin-two">CLAIM</div>
       <div className="fallback-nishi" aria-hidden="true"><b /><b /><em>⌣</em></div>
-      <p>WebGL is unavailable, so the desk is shown as a still study.</p>
+      <p>{reason === 'webgl' ? 'Interactive rendering is unavailable, so the desk is shown in motion-safe mode.' : 'The live desk recovered into a motion-safe study.'}</p>
     </div>
   )
 }
@@ -289,7 +290,7 @@ export function InvestigationScene({ reducedMotion = false }) {
     return () => observer.disconnect()
   }, [])
 
-  if (!webgl) return <SceneFallback />
+  if (!webgl) return <SceneFallback reason="webgl" />
 
   return (
     <div className="scene-frame" ref={frameRef} role="img" aria-labelledby="scene-description">
@@ -302,7 +303,7 @@ export function InvestigationScene({ reducedMotion = false }) {
           camera={{ position: [0, 0.2, 5.9], fov: 38 }}
           gl={{ antialias: true, powerPreference: 'high-performance' }}
           onCreated={() => setWebgl(true)}
-          fallback={<SceneFallback />}
+          fallback={<SceneFallback reason="runtime" />}
         >
           <Suspense fallback={null}>
             <SceneWorld reducedMotion={reducedMotion} />

@@ -112,6 +112,13 @@ The report ends with a checkable action plan. Completing a question means “add
 
 Nishi is a small paper-evidence companion, not a fake chatbot. Nishi offers contextual help for the current surface, supports keyboard interaction, remembers only small convenience preferences, and never decides whether an opportunity is legitimate.
 
+### Small details that make the demo feel complete
+
+- Light / dark mode toggle with a persisted local preference.
+- Copyable report summary for sharing a careful next step.
+- Graceful WebGL error recovery instead of a blank or crashed hero.
+- An animated motion-safe fallback so the evidence desk still feels alive when hardware rendering is unavailable.
+
 ---
 
 ## The product story in one flow
