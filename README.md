@@ -262,6 +262,40 @@ Then open **http://localhost:4173**.
 
 ---
 
+## Deploy on Render
+
+Nishtha is configured as a Render Static Site. The checked-in [`render.yaml`](render.yaml) provides the build command, Node version, published directory, and SPA fallback needed for hash routes such as `/#investigate` and `/#report`.
+
+### Blueprint deploy — recommended
+
+1. Push this repository to GitHub.
+2. In Render, choose **New → Blueprint**.
+3. Select the GitHub repository.
+4. Render will detect `render.yaml` and create the `nishtha` static site.
+5. Click **Apply**. No environment variables or API keys are required.
+
+### Manual static-site settings
+
+If you do not use the Blueprint flow, create a Render **Static Site** with:
+
+```text
+Build command:      npm ci && npm run build
+Publish directory:  dist
+Node version:       22.14.0
+```
+
+Add this rewrite so refreshing any client-side view continues to load the app:
+
+```text
+Source:       /*
+Destination:  /index.html
+Action:       Rewrite
+```
+
+The production build is fully static. Local case data stays in the visitor’s browser, and the app does not require a backend, secret, external model, or paid asset to boot.
+
+---
+
 ## Project commands
 
 | Command | Purpose |
