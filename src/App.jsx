@@ -59,7 +59,7 @@ function AppHeader({ currentView, onNavigate }) {
   }
 
   return (
-    <header className={`site-header ${scrolled ? 'is-scrolled' : ''} ${currentView === 'home' ? 'is-landing' : ''}`}>
+    <header className={`site-header ${scrolled ? 'is-scrolled' : ''} ${currentView === 'home' ? 'is-landing' : ''} ${menuOpen ? 'menu-open' : ''}`}>
       <div className="header-inner">
         <button className="wordmark" onClick={() => { setMenuOpen(false); onNavigate({ view: 'home', section: 'top' }) }} aria-label="Nishtha home">
           <span className="wordmark-mark">N</span><span>Nishtha</span>
