@@ -5,7 +5,7 @@ export const GUIDE_CONTEXT = {
     actions: [
       { label: 'Start an investigation', target: 'investigate' },
       { label: 'How Nishtha works', target: 'works' },
-      { label: 'Understand risk scores', target: 'safety' },
+      { label: 'Understand evidence coverage', target: 'safety' },
       { label: 'View saved cases', target: 'cases' },
       { label: 'Explore safety tips', target: 'safety' },
     ],
@@ -24,6 +24,7 @@ export const GUIDE_CONTEXT = {
     message: "Your report is ready. Let's review the unresolved questions before you decide what to do next.",
     actions: [
       { label: 'Read unresolved questions', target: 'report-questions' },
+      { label: 'Understand this coverage score', target: 'report-signal' },
       { label: 'Open source references', target: 'sources' },
       { label: 'Start another investigation', target: 'investigate' },
     ],
@@ -56,5 +57,6 @@ export function getGuideActionTarget(target) {
   if (target === 'report') return { view: 'report', section: 'report' }
   if (target === 'sources') return { view: 'sources', section: 'sources' }
   if (target === 'report-questions') return { view: 'report', section: 'report-questions' }
+  if (target === 'report-signal') return { view: 'report', section: 'signal-breakdown' }
   return { view: 'home', section: target }
 }

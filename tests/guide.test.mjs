@@ -13,5 +13,6 @@ test('guide provides useful context for every application surface', () => {
 test('guide actions resolve to real views or landing sections', () => {
   assert.deepEqual(getGuideActionTarget('investigate'), { view: 'investigate', section: 'investigate' })
   assert.deepEqual(getGuideActionTarget('report-questions'), { view: 'report', section: 'report-questions' })
+  assert.deepEqual(getGuideActionTarget('report-signal'), { view: 'report', section: 'signal-breakdown' })
   assert.deepEqual(getGuideActionTarget('safety'), { view: 'home', section: 'safety' })
 })
