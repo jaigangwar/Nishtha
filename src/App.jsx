@@ -59,7 +59,7 @@ function AppHeader({ currentView, onNavigate }) {
   }
 
   return (
-    <header className={`site-header ${scrolled ? 'is-scrolled' : ''}`}>
+    <header className={`site-header ${scrolled ? 'is-scrolled' : ''} ${currentView === 'home' ? 'is-landing' : ''}`}>
       <div className="header-inner">
         <button className="wordmark" onClick={() => { setMenuOpen(false); onNavigate({ view: 'home', section: 'top' }) }} aria-label="Nishtha home">
           <span className="wordmark-mark">N</span><span>Nishtha</span>
@@ -83,11 +83,11 @@ function LandingPage({ onNavigate, reducedMotion }) {
 
   return (
     <main className="landing-page">
-      <section className="hero section-shell" id="product">
+      <section className="hero hero-theatre section-shell" id="product">
         <div className="hero-copy">
-          <Reveal><p className="eyebrow hero-eyebrow"><span className="eyebrow-rule" /> Evidence-first opportunity research</p></Reveal>
-          <Reveal delay={80}><h1>Before you trust it,<br /><em>know the truth.</em></h1></Reveal>
-          <Reveal delay={160}><p className="hero-description">Investigate opportunities. Examine the evidence. Make your next move with confidence.</p></Reveal>
+          <Reveal><p className="eyebrow hero-eyebrow"><span className="eyebrow-rule" /> Case file 01 / evidence-first research</p></Reveal>
+          <Reveal delay={80}><h1>Before you trust it,<br /><em>trace the claim.</em></h1></Reveal>
+          <Reveal delay={160}><p className="hero-description">Investigate the fine print. Follow the source trail. Make your next move with the next question in view.</p></Reveal>
           <Reveal delay={220} className="hero-actions">
             <button className="button button-primary" onClick={() => onNavigate({ view: 'investigate', section: 'investigate' })}>Investigate an opportunity <span>↗</span></button>
             <button className="button button-quiet" onClick={() => onNavigate({ view: 'home', section: 'works' })}>Explore how it works <span>↓</span></button>
@@ -96,11 +96,13 @@ function LandingPage({ onNavigate, reducedMotion }) {
             <span><i className="proof-mark">✓</i> Clear evidence states</span>
             <span><i className="proof-mark">⌁</i> Honest uncertainty</span>
           </Reveal>
+          <Reveal delay={340} className="hero-utility"><span>LOCAL PROTOTYPE / NO EXTERNAL API</span><span>SCENE LIVE / 08.4 SEC LOOP</span></Reveal>
         </div>
         <Reveal delay={130} className="hero-visual-wrap">
           <Suspense fallback={<div className="scene-loading" aria-label="Loading interactive evidence desk"><span className="loading-ring" /><span>Preparing the evidence desk…</span></div>}><InvestigationScene reducedMotion={reducedMotion} /></Suspense>
-          <div className="hero-visual-note note-top"><span>01 / 04</span><strong>Examine the trail</strong></div>
-          <div className="hero-visual-note note-bottom"><span>nishi / companion</span><strong>Keep asking better questions.</strong></div>
+          <div className="hero-visual-note note-top"><span>LIVE CASE 01</span><strong>Examine the trail</strong></div>
+          <div className="hero-visual-note note-bottom"><span>NISHI / COMPANION</span><strong>Keep asking better questions.</strong></div>
+          <div className="hero-signal-bar"><span><i className="signal-pulse" /> SIGNAL PATH ACTIVE</span><span>OBSERVE → TRACE → ASK</span></div>
         </Reveal>
         <div className="hero-scroll-cue"><span className="scroll-line" /> scroll to investigate</div>
       </section>
@@ -151,7 +153,7 @@ function LandingPage({ onNavigate, reducedMotion }) {
         </div>
       </section>
 
-      <section className="safety-section section-shell" id="safety">
+      <section className="safety-section safety-climax section-shell" id="safety">
         <Reveal className="safety-copy"><p className="eyebrow">Safety is a structure, not a badge</p><h2>Keep the known,<br /><em>known.</em></h2><p>Every useful report shows its boundaries. Tap a layer to see how Nishtha keeps observations, verification, inference, and uncertainty from collapsing into one neat—and misleading—answer.</p></Reveal>
         <Reveal delay={120} className="safety-layers">
           <div className="layer-tabs" role="tablist" aria-label="Evidence states">
@@ -272,14 +274,22 @@ function SourcesView({ report, onNavigate }) {
   return <main className="sources-page section-shell" id="sources"><div className="workspace-topbar"><button className="back-link" onClick={() => onNavigate({ view: 'report', section: 'report' })}>← Back to report</button><span className="mono-label">PROVENANCE / {current.evidence.length} REFERENCES</span></div><div className="workspace-heading"><div><p className="eyebrow">Source detail</p><h1>Show your<br /><em>work.</em></h1></div><p>Every reference is a small contract with the reader: this is what was checked, and this is what it cannot prove.</p></div><div className="source-stack">{current.evidence.map((item, index) => <article className="source-card" key={item.id || item.title}><div className="source-card-index">E-{String(index + 1).padStart(2, '0')}</div><div><span className={`entry-type entry-${item.tone}`}>{item.type}</span><h2>{item.source}</h2><div className="source-quote">“{item.quote}”</div><p>{item.detail}</p><div className="source-boundary"><span>CAN SUPPORT</span><strong>{item.supports}</strong></div><div className="source-boundary source-boundary-muted"><span>CANNOT SUPPORT</span><strong>{item.limits}</strong></div><span className="mono-label">{item.sourceLocation || 'Local input · no external source checked'}</span></div></article>)}</div></main>
 }
 
+function getLocationState() {
+  if (typeof window === 'undefined') return { view: 'home', section: 'product' }
+  const section = window.location.hash.replace(/^#/, '') || 'product'
+  const routedViews = ['investigate', 'report', 'cases', 'sources']
+  return { view: routedViews.includes(section) ? section : section === 'report-questions' || section === 'signal-breakdown' ? 'report' : 'home', section }
+}
+
 function App() {
-  const [view, setView] = useState('home')
+  const initialLocation = getLocationState()
+  const [view, setView] = useState(initialLocation.view)
   const [report, setReport] = useState(null)
   const [cases, setCases] = useState(getStoredCases)
   const [caseSaved, setCaseSaved] = useState(false)
   const [saveNotice, setSaveNotice] = useState('')
   const [reducedMotion, setReducedMotion] = useState(false)
-  const [pendingSection, setPendingSection] = useState(null)
+  const [pendingSection, setPendingSection] = useState(initialLocation.section)
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -288,6 +298,11 @@ function App() {
     media.addEventListener?.('change', update)
     return () => media.removeEventListener?.('change', update)
   }, [])
+
+  useEffect(() => {
+    const titles = { home: 'Nishtha — Evidence before trust', investigate: 'Investigate — Nishtha', report: 'Evidence report — Nishtha', cases: 'Saved cases — Nishtha', sources: 'Source detail — Nishtha' }
+    document.title = titles[view] || titles.home
+  }, [view])
 
   useEffect(() => {
     if (!pendingSection) return undefined
@@ -300,14 +315,28 @@ function App() {
     return () => window.clearTimeout(timer)
   }, [view, pendingSection, reducedMotion])
 
+  useEffect(() => {
+    const onPopState = () => {
+      const next = getLocationState()
+      setView(next.view)
+      setPendingSection(next.section)
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
   const navigate = (destination) => {
+    const nextView = destination.view || 'home'
+    const nextSection = destination.section || nextView
     if (destination.view === 'investigate' && destination.reset !== false) {
       setReport(null)
       setCaseSaved(false)
       setSaveNotice('')
     }
-    setView(destination.view || 'home')
-    setPendingSection(destination.section || null)
+    setView(nextView)
+    setPendingSection(nextSection)
+    const nextHash = `#${nextSection}`
+    if (window.location.hash !== nextHash) window.history.pushState({ view: nextView, section: nextSection }, '', nextHash)
   }
 
   const saveCase = () => {
